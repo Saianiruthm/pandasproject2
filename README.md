@@ -5,7 +5,6 @@
 ## Medium Document
 
 For a detailed analysis and insights derived from the dataset, please refer to the Medium article:
-
 [Exploring Weather Data: A Comprehensive Analysis](https://medium.com/@sai2804aniruth/exploring-weather-data-a-comprehensive-analysis-b6482ce2a16e)
 
 ## Overveiw
