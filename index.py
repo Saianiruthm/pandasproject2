@@ -1,4 +1,7 @@
 import pandas as pd
+import numpy as np
+
+# Assume 'data' is your dataframe
 
 # Load the dataset
 file_path = 'weatherHistory.csv'
@@ -34,11 +37,7 @@ print(data.info())
 # Save the preprocessed data to a new CSV file
 data.to_csv('preprocessed_weather_data.csv', index=False)
 
-
-import pandas as pd
-import numpy as np
-
-# Assume 'data' is your dataframe
+#Insights
 
 # 1. Shape of the dataframe
 insight_1 = f"Shape of the dataframe: {data.shape}"
