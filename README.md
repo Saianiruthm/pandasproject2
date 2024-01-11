@@ -1,5 +1,3 @@
----
-
 # Weather Data Analysis
 
 ## Medium Document
@@ -8,7 +6,7 @@ For a detailed analysis and insights derived from the dataset, please refer to t
 
 ## Overveiw
 
-This repository contains a Python script (`index.py`) and a dataset (`weatherHistory.csv`) for analyzing historical weather data. The script preprocesses the data and derives various insights to understand different aspects of the weather patterns recorded.
+This repository contains a Python script (`index.py`), (`insights.py`) and a dataset (`weatherHistory.csv`) for analyzing historical weather data. The script preprocesses the data and derives various insights and visualisations to understand different aspects of the weather patterns recorded.
 
 ## Dataset
 
@@ -36,11 +34,13 @@ Ensure you have the following dependencies installed:
 - Python 3.x
 - Pandas
 - NumPy
+- matplotlib
+- seaborn
 
 You can install the dependencies via pip:
 
 ```bash
-pip install pandas numpy
+pip install pandas numpy matplotlib seaborn
 ```
 
 ### Running the Script
@@ -57,11 +57,15 @@ The script performs the following actions:
 - Normalizes numerical columns for better analysis.
 - Derives insights from the data, such as summary statistics, correlations, and visualizations.
 - Displays these insights in the console.
+- Derives visualisations from the data.
+- Saves them in the same directory as `index.py`.
+Note: Since I have imported all from `insights.py` in `index.py`, functions that are defined and declared inside `insights.py` will also run while running `index.py` 
 
 ### File Structure
 
 ```
-- index.py: Python script for data preprocessing and analysis.
+- insights.py: Python script for data preprocessing and analysis.
+- index.py: Python script for data visualisations.
 - weatherHistory.csv: Dataset containing weather history information.
 - README.md: Documentation for the repository.
 ```
@@ -75,4 +79,3 @@ The weather history dataset used in this repository is sourced from [provide the
 - The insights derived from the dataset are aimed at providing a comprehensive understanding of various weather parameters and their relationships.
 - Customizations or additional analysis can be added to the script based on specific research or analysis requirements.
 
----
