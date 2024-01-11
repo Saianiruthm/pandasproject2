@@ -1,163 +1,301 @@
-import pandas as pd
-import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from insights import *
 
-# Assume 'data' is your dataframe
-
-# Load the dataset
-file_path = 'weatherHistory.csv'
-data = pd.read_csv(file_path)
-
-# Display basic info about the dataset
-print("Dataset info before preprocessing:")
-print(data.info())
-
-# Handling missing values
-data.dropna(inplace=True)  # Drop rows with missing values, you might want to handle these differently depending on your needs
-
-# Convert 'Formatted Date' column to datetime format
-data['Formatted Date'] = pd.to_datetime(data['Formatted Date'], utc=True)
-# Extracting date components
-data['Year'] = data['Formatted Date'].dt.year
-data['Month'] = data['Formatted Date'].dt.month
-data['Day'] = data['Formatted Date'].dt.day
-data['Hour'] = data['Formatted Date'].dt.hour
-
-# Handle categorical variables (if any)
-# Example: Convert 'Precip Type' to numerical values using one-hot encoding
-#data = pd.get_dummies(data, columns=['Precip Type'])
-
-# Normalize numerical columns (optional but can be useful for some analyses)
-numerical_cols = ['Temperature (C)', 'Apparent Temperature (C)', 'Humidity', 'Wind Speed (km/h)', 'Wind Bearing (degrees)', 'Visibility (km)', 'Pressure (millibars)']
-data[numerical_cols] = (data[numerical_cols] - data[numerical_cols].mean()) / data[numerical_cols].std()
-
-# Display basic info after preprocessing
-print("\nDataset info after preprocessing:")
-print(data.info())
-
-# Save the preprocessed data to a new CSV file
-data.to_csv('preprocessed_weather_data.csv', index=False)
-
-#Insights
-
-# 1. Shape of the dataframe
-insight_1 = f"Shape of the dataframe: {data.shape}"
-
-# 2. Summary statistics
-summary_stats = data.describe()
-insight_2 = f"Summary statistics:\n{summary_stats}"
-
-# 3. Checking for missing values
-missing_values = data.isnull().sum()
-insight_3 = f"Missing values:\n{missing_values}"
-
-# 4. Checking unique values in a column (e.g., 'Summary')
-unique_values_summary = data['Summary'].unique()
-insight_4 = f"Unique values in 'Summary' column: {unique_values_summary}"
-
-# Numerical columns only
-numerical_data = data.select_dtypes(include=[np.number])
-
-# 5. Correlation matrix between numerical columns
-correlation_matrix = numerical_data.corr()
-insight_5 = f"Correlation matrix:\n{correlation_matrix}"
-
-# 6. Distribution of temperatures
-temperature_distribution = data['Temperature (C)'].hist()
-insight_6 = "Distribution of temperatures"
-
-# 7. Average humidity by 'Summary'
-avg_humidity_summary = data.groupby('Summary')['Humidity'].mean()
-insight_7 = f"Average humidity by 'Summary':\n{avg_humidity_summary}"
-
-# 8. Busiest period by 'Formatted Date'
-busy_period = data['Formatted Date'].dt.to_period('M').value_counts().idxmax()
-insight_8 = f"Busiest period by 'Formatted Date': {busy_period}"
-
-# 9. Variance of 'Pressure (millibars)' across different 'Summary' types
-pressure_variance = data.groupby('Summary')['Pressure (millibars)'].var()
-insight_9 = f"Variance of 'Pressure (millibars)' by 'Summary':\n{pressure_variance}"
-
-# 10. Top 5 windiest days
-top_windiest_days = data.nlargest(5, 'Wind Speed (km/h)')[['Formatted Date', 'Wind Speed (km/h)']]
-insight_10 = f"Top 5 windiest days:\n{top_windiest_days}"
-
-# 11. Mean temperature by 'Precip Type'
-mean_temp_precip = data.groupby('Precip Type')['Temperature (C)'].mean()
-insight_11 = f"Mean temperature by 'Precip Type':\n{mean_temp_precip}"
-
-# 12. Visualizing Humidity vs. Temperature relationship
-humidity_temp_relationship = data.plot.scatter(x='Temperature (C)', y='Humidity')
-insight_12 = "Humidity vs. Temperature relationship"
-
-# 13. Daily summary with the longest text
-max_summary_length = data.loc[data['Daily Summary'].str.len().idxmax(), 'Daily Summary']
-insight_13 = f"Daily summary with the longest text:\n{max_summary_length}"
-
-# 14. Day with the highest visibility
-max_visibility_day = data.loc[data['Visibility (km)'].idxmax(), 'Formatted Date']
-insight_14 = f"Day with the highest visibility: {max_visibility_day}"
-
-# 15. Proportion of different 'Precip Type'
-precip_type_proportion = data['Precip Type'].value_counts(normalize=True)
-insight_15 = f"Proportion of different 'Precip Type':\n{precip_type_proportion}"
+# Set Seaborn style
+sns.set(style="whitegrid")
 
 
-# Collect all insights
-insights = [insight_1, insight_2, insight_3, insight_4, insight_5, insight_6,
-                insight_7, insight_8, insight_9, insight_10, insight_11, insight_12,
-                insight_13, insight_14, insight_15]
+# Visualization 1: Pair plot of numerical columns
+fig = plt.figure(figsize=(15, 10))
+sns.pairplot(data[numerical_cols])
+plt.suptitle('Pair Plot of Numerical Columns', y=1.02)
+plt.savefig("Visualization_1_Pair_plot_of_numerical_columns.png")
 
-# 16. Hourly Temperature trend
-hourly_temp_trend = data.groupby('Hour')['Temperature (C)'].mean()
-insights.append(hourly_temp_trend)
+# Visualization 2: Box plot of 'Temperature (C)' by 'Summary'
+plt.close()
+fig = plt.figure(figsize=(15, 8))
+sns.boxplot(x='Summary', y='Temperature (C)', data=data)
+plt.title('Box plot of Temperature by Summary')
+plt.xticks(rotation=45)
 
-# 17. Relationship between Temperature and Apparent Temperature
-temp_vs_apparent_temp = data.plot.scatter(x='Temperature (C)', y='Apparent Temperature (C)')
-insights.append(temp_vs_apparent_temp)
+plt.savefig("Visualization_2_Box_plot_of_Temperature_by_Summary.png")
 
-# 18 . Average Temperature by Month
-avg_temp_by_month = data.groupby('Month')['Temperature (C)'].mean()
-insights.append(avg_temp_by_month)
+# Visualization 3: Heatmap of Correlation Matrix
+plt.close()
+fig = plt.figure(figsize=(12, 10))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt=".2f")
+plt.title('Correlation Matrix Heatmap')
 
-# 19. Count of different 'Summary' values
-summary_counts = data['Summary'].value_counts()
-insights.append(summary_counts)
+plt.savefig("Visualization_3_Heatmap_of_Correlation_Matrix.png")
 
-# 20. Maximum Humidity recorded
-max_humidity = data['Humidity'].max()
-insights.append(max_humidity)
+# Visualization 4: Distribution of 'Apparent Temperature (C)' by 'Precip Type'
+plt.close()
+fig = plt.figure(figsize=(15, 8))
+sns.violinplot(x='Precip Type', y='Apparent Temperature (C)', data=filtered_data)
+plt.title('Distribution of Apparent Temperature by Precipitation Type')
 
-# 21. Distribution of Precipitation Types
-precip_type_distribution = data['Precip Type'].value_counts()
-insights.append(precip_type_distribution)
+plt.savefig("Visualization_4_Distribution_of_Apparent_Temperature_by_Precip_Type.png")
 
-# 22. Daily Summary occurrences
-daily_summary_counts = data['Daily Summary'].value_counts()
-insights.append(daily_summary_counts)
+# Visualization 5: Line plot of Hourly Temperature trend
+plt.close()
+fig = plt.figure(figsize=(15, 8))
+sns.lineplot(x=hourly_temp_trend.index, y=hourly_temp_trend.values)
+plt.title('Hourly Temperature Trend')
+plt.xlabel('Hour')
+plt.ylabel('Average Temperature (C)')
 
-# 23. Monthly average visibility
-monthly_avg_visibility = data.groupby('Month')['Visibility (km)'].mean()
-insights.append(monthly_avg_visibility)
+plt.savefig("Visualization_5_Line_plot_of_Hourly_Temperature_trend.png")
 
-# 24. Range of Pressure values
-pressure_range = data['Pressure (millibars)'].max() - data['Pressure (millibars)'].min()
-insights.append(pressure_range)
+# Visualization 6: Scatter plot of 'Temperature (C)' vs 'Humidity'
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.scatterplot(x='Temperature (C)', y='Humidity', data=data)
+plt.title('Scatter plot of Temperature vs Humidity')
 
-# 25. Hourly Wind Speed statistics
-hourly_wind_speed_stats = data.groupby('Hour')['Wind Speed (km/h)'].describe()
-insights.append(hourly_wind_speed_stats)
+plt.savefig("Visualization_6_Scatter_plot_of_Temperature_vs_Humidity.png")
 
-# 26. Proportion of days with Loud Cover
-loud_cover_proportion = (data['Loud Cover'].sum() / len(data)) * 100
-insights.append(loud_cover_proportion)
+#_Visualization 7: Bar plot of 'Precip Type' proportions
+plt.close()
+fig = plt.figure(figsize=(10, 6))
+precip_type_proportion.plot(kind='bar')
+plt.title('Proportion of Precipitation Types')
+plt.xlabel('Precipitation Type')
+plt.ylabel('Proportion')
 
-# 27. Summary statistics of Apparent Temperature
-apparent_temp_stats = data['Apparent Temperature (C)'].describe()
-insights.append(apparent_temp_stats)
+plt.savefig("Visualization_7_Bar_plot_of_Precip_Type_proportions.png")
 
+#_Visualization 8: Line plot of 'Average Temperature by Month'
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.lineplot(x=avg_temp_by_month.index, y=avg_temp_by_month.values)
+plt.title('Average Temperature by Month')
+plt.xlabel('Month')
+plt.ylabel('Average Temperature (C)')
 
-# Print or use insights as needed
-for i, insight in enumerate(insights, start=1):
-    print(f"Insight {i}:")
-    print(insight)
-    print("\n")
+plt.savefig("Visualization_8_Line_plot_of_Average_Temperature_by_Month.png")
+
+# Visualization 9: Count plot of 'Summary' values
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.countplot(x='Summary', data=data)
+plt.title('Count of Each Weather Summary')
+plt.xticks(rotation=45)
+
+plt.savefig("Visualization_9_Count_plot_of_Summary_values.png")
+
+#_Visualization 10: Histogram of 'Humidity'
+plt.close()
+fig = plt.figure(figsize=(10, 6))
+sns.histplot(data['Humidity'], bins=30, kde=True)
+plt.title('Distribution of Humidity')
+plt.xlabel('Humidity')
+
+plt.savefig("Visualization_10_Histogram_of_Humidity.png")
+
+# Visualization 11: Bar plot of 'Hourly Wind Speed statistics'
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.barplot(x=hourly_wind_speed_stats.index, y=hourly_wind_speed_stats['mean'])
+plt.title('Hourly Average Wind Speed')
+plt.xlabel('Hour')
+plt.ylabel('Average Wind Speed (km/h)')
+
+plt.savefig("Visualization_11_Bar_plot_of_Hourly_Wind_Speed_statistics.png")
+
+#_Visualization 12: Scatter plot of 'Temperature (C)' vs 'Apparent Temperature (C)'
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.scatterplot(x='Temperature (C)', y='Apparent Temperature (C)', data=data)
+plt.title('Scatter plot of Temperature vs Apparent Temperature')
+
+plt.savefig("Visualization_12_Scatter_plot_of_Temperature_vs_Apparent_Temperature.png")
+
+# Visualization 13: Bar plot of 'Pressure (millibars)' variance by 'Summary'
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.barplot(x=pressure_variance.index, y=pressure_variance.values)
+plt.title('Variance of Pressure by Weather Summary')
+plt.xticks(rotation=45)
+
+plt.savefig("Visualization_13_Bar_plot_of_Pressure_variance_by_Summary.png")
+
+# Visualization 14: Box plot of 'Visibility (km)' by 'Month'
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.boxplot(x='Month', y='Visibility (km)', data=data)
+plt.title('Visibility Distribution by Month')
+plt.xlabel('Month')
+plt.ylabel('Visibility (km)')
+
+plt.savefig("Visualization_14_Box_plot_of_Visibility_by_Month.png")
+
+# Visualization 15: Scatter plot of 'Wind Speed (km/h)' vs 'Humidity'
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.scatterplot(x='Wind Speed (km/h)', y='Humidity', data=data)
+plt.title('Scatter plot of Wind Speed vs Humidity')
+
+plt.savefig("Visualization_15_Scatter_plot_of_Wind_Speed_vs_Humidity.png")
+
+#_Visualization 16: Line plot of 'Monthly Average Visibility'
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.lineplot(x=monthly_avg_visibility.index, y=monthly_avg_visibility.values)
+plt.title('Monthly Average Visibility')
+plt.xlabel('Month')
+plt.ylabel('Average Visibility (km)')
+
+plt.savefig("Visualization_16_Line_plot_of_Monthly_Average_Visibility.png")
+
+# Visualization 17: Bar plot of 'Daily Summary' occurrences
+plt.close()
+fig = plt.figure(figsize=(15, 8))
+daily_summary_counts.head(10).plot(kind='bar')
+plt.title('Top 10 Daily Summary Occurrences')
+plt.xlabel('Daily Summary')
+plt.ylabel('Occurrences')
+
+plt.savefig("Visualization_17_Bar_plot_of_Daily_Summary_occurrences.png")
+
+# Visualization 18: Histogram of 'Pressure (millibars)'
+plt.close()
+fig = plt.figure(figsize=(10, 6))
+sns.histplot(data['Pressure (millibars)'], bins=30, kde=True)
+plt.title('Distribution of Pressure')
+plt.xlabel('Pressure (millibars)')
+
+plt.savefig("Visualization_18_Histogram_of_Pressure.png")
+
+# Visualization 19: Pie chart of 'Precip Type' proportions
+plt.close()
+fig = plt.figure(figsize=(8, 8))
+plt.pie(precip_type_proportion, labels=precip_type_proportion.index, autopct='%1.1f%%', startangle=140) # type: ignore
+plt.title('Proportion of Precipitation Types')
+
+plt.savefig("Visualization_19_Pie_chart_of_Precip_Type_proportions.png")
+
+# Visualization 20: Box plot of 'Apparent Temperature (C)' by 'Month'
+plt.close()
+fig = plt.figure(figsize=(15, 8))
+sns.boxplot(x='Month', y='Apparent Temperature (C)', data=data)
+plt.title('Apparent Temperature Distribution by Month')
+plt.xlabel('Month')
+plt.ylabel('Apparent Temperature (C)')
+
+plt.savefig("Visualization_20_Box_plot_of_Apparent_Temperature_by_Month.png")
+
+# Advanced Visualizations
+
+# Visualization 21: Pairplot of Numerical Columns with Hue based on 'Precip Type'
+    # Add 'Precip Type' to numerical_data temporarily for visualization
+numerical_data_with_precip = numerical_data.join(filtered_data['Precip Type'])
+plt.close()
+fig = plt.figure(figsize=(20, 15))
+sns.pairplot(data=numerical_data_with_precip, hue='Precip Type')
+plt.suptitle('Pair Plot of Numerical Columns with Hue by Precipitation Type', y=1.02)
+
+plt.savefig("Visualization_21_Pairplot_of_Numerical_Columns_with_Hue_based_on_Precip_Type.png")
+
+# Visualization 22: Boxplot of 'Apparent Temperature (C)' by 'Month' and 'Precip Type'
+plt.close()
+fig = plt.figure(figsize=(15, 10))
+sns.boxplot(x='Month', y='Apparent Temperature (C)', hue='Precip Type', data=filtered_data)
+plt.title('Apparent Temperature by Month and Precipitation Type')
+plt.xlabel('Month')
+plt.ylabel('Apparent Temperature (C)')
+
+plt.savefig("Visualization_22_Boxplot_of_Apparent_Temperature_by_Month_and_Precip_Type.png")
+
+# Visualization 23: Heatmap of Hourly Wind Speed statistics by Month and Hour
+plt.close()
+fig = plt.figure(figsize=(15, 10))
+hourly_wind_speed_pivot = hourly_wind_speed_stats.unstack().fillna(0)['mean']
+hourly_wind_speed_pivot = hourly_wind_speed_pivot.reset_index().pivot(index='Hour', columns='Month', values='mean')
+sns.heatmap(hourly_wind_speed_pivot, cmap='coolwarm', annot=True, fmt=".2f")
+plt.title('Hourly Wind Speed by Month and Hour')
+plt.xlabel('Month')
+plt.ylabel('Hour')
+
+plt.savefig("Visualization_23_Heatmap_of_Hourly_Wind_Speed_statistics_by_Month_and_Hour.png")
+
+# Visualization 24: Pairplot of Temperature, Humidity, Wind Speed, and Pressure by Month
+selected_cols = ['Temperature (C)', 'Humidity', 'Wind Speed (km/h)', 'Pressure (millibars)', 'Month']
+pairplot_filtered = data[selected_cols]
+plt.close()
+fig = plt.figure(figsize=(15, 10))
+sns.pairplot(pairplot_filtered, hue='Month')
+plt.suptitle('Pair Plot of Weather Attributes by Month', y=1.02)
+
+plt.savefig("Visualization_24_Pairplot.png")
+
+# Visualization 25: Line plot of Monthly Average Temperature and Humidity
+monthly_avg_temp_humidity = data.groupby('Month')[['Temperature (C)', 'Humidity']].mean().reset_index()
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.lineplot(x='Month', y='value', hue='variable', data=pd.melt(monthly_avg_temp_humidity, ['Month']))
+plt.title('Monthly Average Temperature and Humidity')
+plt.xlabel('Month')
+plt.ylabel('Value')
+plt.legend(['Temperature (C)', 'Humidity'])
+
+plt.savefig("Visualization_25_Line_plot_of_Monthly_Average_Temperature_and_Humidity.png")
+
+# Visualization 26: Scatter plot of Temperature vs Apparent Temperature by Humidity
+plt.close()
+fig = plt.figure(figsize=(12, 8))
+sns.scatterplot(x='Temperature (C)', y='Apparent Temperature (C)', hue='Humidity', data=data)
+plt.title('Temperature vs Apparent Temperature colored by Humidity')
+plt.xlabel('Temperature (C)')
+plt.ylabel('Apparent Temperature (C)')
+
+plt.savefig("Visualization_26_Scatter_plot_of_Temperature_vs_Apparent_Temperature_by_Humidity.png")
+
+# Visualization 27: Violin plot of Apparent Temperature by Summary with Hue by Precip Type
+plt.close()
+fig = plt.figure(figsize=(15, 8))
+sns.violinplot(x='Summary', y='Apparent Temperature (C)', hue='Precip Type', data=filtered_data)
+plt.title('Apparent Temperature Distribution by Weather Summary and Precipitation Type')
+plt.xticks(rotation=45)
+
+plt.savefig("Visualization_27_Violin_plot_of_Apparent_Temperature_by_Summary_with_Hue_by_Precip_Type.png")
+
+# Visualization 28: Pairplot of Weather Attributes with Hourly Trend
+pairplot_hourly_trend = data[selected_cols + ['Hour']]
+pairplot_hourly_trend = pairplot_hourly_trend.assign(Hourly_Trend=data.groupby('Hour')['Temperature (C)'].transform('mean'))
+plt.close()
+fig = plt.figure(figsize=(20, 15))
+sns.pairplot(pairplot_hourly_trend, hue='Hour', palette='viridis')
+plt.suptitle('Pair Plot of Weather Attributes with Hourly Temperature Trend', y=1.02)
+
+plt.savefig("Visualization_28_Pairplot_of_Weather_Attributes_with_Hourly_Trend.png")
+
+# Visualization 29: Boxplot of Wind Speed by Weather Summary
+plt.close()
+fig = plt.figure(figsize=(15, 8))
+sns.boxplot(x='Summary', y='Wind Speed (km/h)', data=data)
+plt.title('Wind Speed Distribution by Weather Summary')
+plt.xticks(rotation=45)
+
+plt.savefig("Visualization_29_Boxplot_of_Wind_Speed_by_Weather_Summary.png")
+
+#_Visualization 30: Line plot of Hourly Wind Speed Trend by Month
+hourly_wind_speed_month_trend = data.pivot_table(index='Hour', columns='Month', values='Wind Speed (km/h)', aggfunc='mean')
+plt.close()
+fig = plt.figure(figsize=(15, 8))
+sns.lineplot(data=hourly_wind_speed_month_trend, dashes=False)
+plt.title('Hourly Wind Speed Trend by Month')
+plt.xlabel('Hour')
+plt.ylabel('Average Wind Speed (km/h)')
+plt.legend(title='Month')
+
+plt.savefig("Visualization_30_Line_plot_of_Hourly_Wind_Speed_Trend_by_Month.png")
+
+#Visualization 31:  Distribution of temperatures
+plt.close()
+fig = plt.figure(figsize=(10, 6))
+sns.histplot(data['Temperature (C)'], bins=30, kde=True)
+plt.title('Distribution of Temperature (C)')
+plt.xlabel('Temperature (C)')
+
+plt.savefig("Visualisation_31_Temperature_Distribution.png")
